@@ -1,34 +1,30 @@
-"""Entry point for MCP Server — exposes tools via streamable-http.
-"""
-import asyncio
-from mcp import FastMCP
+from __future__ import annotations
+from mcp.server.fastmcp import FastMCP
 
-from config.settings import Settings
-from tools.manager import ToolManager
-from logger import setup_logging
-from app_context import init_app
+from config.settings import get_settings
+from logger import setup_logging, get_logger
+from app_context import init_app, close_app
+from tools.registry import register_all_tools
+
+log = get_logger(__name__)
 
 
 def create_app() -> FastMCP:
-    settings = Settings()
+    settings = get_settings()
     setup_logging(settings)
-
-    # initialize app singletons
     init_app(settings)
 
-    mcp = FastMCP(name="mcp-server-hr-archive")
-
-    # Register tools
-    manager = ToolManager()
-    manager.register_all(mcp)
-
+    mcp = FastMCP("mcp-server-hr-archive")
+    register_all_tools(mcp)
     return mcp
 
 
 def main() -> None:
     mcp = create_app()
-    # run streamable-http adapter (the SDK provides streamable-http integration)
-    mcp.run(streamable_http=True)
+    try:
+        mcp.run(transport="streamable-http")
+    finally:
+        close_app()
 
 
 if __name__ == "__main__":

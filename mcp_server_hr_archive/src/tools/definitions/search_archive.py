@@ -1,24 +1,29 @@
 from __future__ import annotations
-from mcp import Tool
-
-"""Tool: search_archive
-Purpose: search public archives using backend API and return paginated results.
-Input: { q: str, page: int, per_page: int }
-Output: { items: list, total: int, page: int }
-Call when user asks to find archives by keywords.
-"""
+from typing import Optional
+from app_context import archive_service
 
 
-async def _impl(params):
-    # params: { q or keyword, page, per_page or size }
-    from app_context import archive_service
+async def search_archive(
+    keyword: Optional[str] = None,
+    status: Optional[str] = None,
+    warehouse_id: Optional[str] = None,
+    language: Optional[str] = None,
+    maintenance: Optional[str] = None,
+    created_from: Optional[str] = None,
+    created_to: Optional[str] = None,
+    page: int = 0,
+    size: int = 20,
+) -> dict:
+    """Tìm kiếm hồ sơ lưu trữ theo từ khóa và bộ lọc.
 
+    Gọi khi người dùng muốn tìm/liệt kê hồ sơ theo tiêu đề, mã hồ sơ, mã hộp, trạng thái,
+    kho, ngôn ngữ, thời hạn bảo quản, khoảng ngày tạo. Trả về danh sách tóm tắt — dùng
+    `get_archive_detail` với `id` lấy từ đây nếu cần xem đầy đủ 1 hồ sơ.
+    """
     svc = archive_service()
-    q = params.get("q") or params.get("keyword") or params.get("query")
-    page = params.get("page", 0)
-    size = params.get("per_page") or params.get("size") or 20
-    res = await svc.search_archives(q, page=page, per_page=size)
-    return res
-
-
-tool = Tool(name="search_archive", description="Search archives", func=_impl)
+    return await svc.search_archives(
+        keyword=keyword, status=status, warehouse_id=warehouse_id,
+        language=language, maintenance=maintenance,
+        created_from=created_from, created_to=created_to,
+        page=page, size=size,
+    )

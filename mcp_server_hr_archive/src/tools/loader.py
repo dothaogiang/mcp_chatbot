@@ -98,52 +98,50 @@ def load_tools_from_yaml(path: str) -> List[Any]:
             if cfg.input_schema:
                 for fname, ftype in cfg.input_schema.items():
                     model_fields[fname] = (_parse_field_type(ftype), ...)
-+            elif cfg.inputSchema:
-+                model_fields = _build_fields_from_json_schema(cfg.inputSchema)
- 
-             if model_fields:
--                Model = create_model(f"{cfg.name}_Input", **model_fields)  # type: ignore
-+                Model = create_model(f"{tool_name}_Input", **model_fields)  # type: ignore
-             else:
-                 Model = None
- 
-             # handler can be an attribute (cfg.attr) or default _impl
-             handler = getattr(m, cfg.attr, None) or getattr(m, "_impl", None)
-             if handler is None:
-                 continue
- 
-             # create wrapper that validates input and calls handler
-             async def _async_wrapper(params):
-                 data = params or {}
-                 if Model is not None:
-                     try:
-                         parsed = Model.parse_obj(data)
-                         data = parsed.model_dump() if hasattr(parsed, 'model_dump') else parsed.dict()
-                     except ValidationError as ve:
-                         raise ve
-                 # call handler (may be async or sync)
-                 if inspect.iscoroutinefunction(handler):
-                     return await handler(data)
-                 else:
-                     return handler(data)
- 
-             def _sync_wrapper(params):
-                 data = params or {}
-                 if Model is not None:
-                     try:
-                         parsed = Model.parse_obj(data)
-                         data = parsed.model_dump() if hasattr(parsed, 'model_dump') else parsed.dict()
-                     except ValidationError as ve:
-                         raise ve
-                 return handler(data)
- 
-             # choose wrapper according to handler type
-             wrapper = _async_wrapper if inspect.iscoroutinefunction(handler) else _sync_wrapper
- 
-             # Build a dynamic Tool object at registration time in manager
-             # We'll return a tuple so manager can construct the Tool with name/desc
--            tools.append((cfg.name, cfg.description or getattr(m, '__doc__', ''), wrapper))
-+            tools.append((tool_name, cfg.description or getattr(m, '__doc__', ''), wrapper))
-         except Exception:
-             continue
+            elif cfg.inputSchema:
+                model_fields = _build_fields_from_json_schema(cfg.inputSchema)
+
+            if model_fields:
+                Model = create_model(f"{tool_name}_Input", **model_fields)  # type: ignore
+            else:
+                Model = None
+
+            # handler can be an attribute (cfg.attr) or default _impl
+            handler = getattr(m, cfg.attr, None) or getattr(m, "_impl", None)
+            if handler is None:
+                continue
+
+            # create wrapper that validates input and calls handler
+            async def _async_wrapper(params):
+                data = params or {}
+                if Model is not None:
+                    try:
+                        parsed = Model.parse_obj(data)
+                        data = parsed.model_dump() if hasattr(parsed, 'model_dump') else parsed.dict()
+                    except ValidationError as ve:
+                        raise ve
+                # call handler (may be async or sync)
+                if inspect.iscoroutinefunction(handler):
+                    return await handler(data)
+                else:
+                    return handler(data)
+
+            def _sync_wrapper(params):
+                data = params or {}
+                if Model is not None:
+                    try:
+                        parsed = Model.parse_obj(data)
+                        data = parsed.model_dump() if hasattr(parsed, 'model_dump') else parsed.dict()
+                    except ValidationError as ve:
+                        raise ve
+                return handler(data)
+
+            # choose wrapper according to handler type
+            wrapper = _async_wrapper if inspect.iscoroutinefunction(handler) else _sync_wrapper
+
+            # Build a dynamic Tool object at registration time in manager
+            # We'll return a tuple so manager can construct the Tool with name/desc
+            tools.append((tool_name, cfg.description or getattr(m, '__doc__', ''), wrapper))
+        except Exception:
+            continue
     return tools

@@ -1,29 +1,15 @@
 from __future__ import annotations
-from mcp import Tool
-
-"""Tool: get_archive_detail
-Purpose: fetch brief detail for an archive id.
-Input: { id: str }
-Output: { archive: { ... } }
-Note: backend may return inconsistent not-found errors; client maps to exceptions.
-"""
+from app_context import archive_service
 
 
-async def _impl(params):
-    from config.settings import Settings
-    from clients.archive_backend_client import ArchiveBackendClient
-    from common_utils.exceptions import NotFoundError
+async def get_archive_detail(id: str) -> dict:
+    """Lấy chi tiết đầy đủ 1 hồ sơ lưu trữ theo UUID.
 
-    from app_context import archive_service
+    CHỈ gọi khi đã có UUID hợp lệ — thường lấy từ kết quả `search_archive`.
+    Không tự đoán UUID.
+    """
     svc = archive_service()
-    archive_id = params.get("id") or params.get("archive_id")
-    if not archive_id:
-        raise ValueError("missing archive id")
-    try:
-        data = await svc.get_archive(archive_id)
-    except NotFoundError:
-        return {"archive": None}
-    return {"archive": data}
-
-
-tool = Tool(name="get_archive_detail", description="Get archive detail", func=_impl)
+    archive = await svc.get_archive(id)
+    if archive is None:
+        return {"found": False, "message": "Không tìm thấy hồ sơ với ID này"}
+    return {"found": True, "archive": archive}

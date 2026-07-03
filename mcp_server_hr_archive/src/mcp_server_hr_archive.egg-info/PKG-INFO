@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: mcp_server_hr_archive
+Version: 0.1.0
+Summary: MCP Server for HR Archive
+Requires-Python: >=3.12
+Requires-Dist: mcp<2,>=1.28
+Requires-Dist: httpx[http2]>=0.24
+Requires-Dist: pydantic<3,>=2.0
+Requires-Dist: pydantic-settings>=2.0
+Requires-Dist: qdrant-client>=1.8
+Requires-Dist: FlagEmbedding>=1.2
+Requires-Dist: apscheduler>=3.10
+Requires-Dist: PyYAML>=6.0

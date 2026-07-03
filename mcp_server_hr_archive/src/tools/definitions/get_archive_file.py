@@ -1,50 +1,25 @@
 from __future__ import annotations
-from mcp import Tool
-
-"""Tool: get_archive_file_info
-Purpose: return metadata for a file (including `key` to pass to file proxy).
-Input: { archive_id: str, file_index: int }
-Output: { file: { name, size, key } }
-Note: This tool returns metadata only; callers must not embed binary into MCP outputs.
-"""
+from typing import Optional
+from app_context import file_service, archive_service
 
 
-async def _impl(params):
-    from config.settings import Settings
-    from clients.archive_backend_client import ArchiveBackendClient
-    from urllib.parse import urlparse
-
-    from app_context import file_service, archive_service
-
+async def get_archive_file_info(
+    archive_id: Optional[str] = None,
+    file_index: int = 0,
+    key: Optional[str] = None,
+) -> dict:
+    """Lấy metadata của 1 file gốc (tên file, kích thước, content-type) — KHÔNG trả nội
+    dung binary. Khuyến nghị truyền `archive_id` (lấy từ `get_archive_detail`) +
+    `file_index`; tool tự tra `fileUrls` và tính `key`. Chỉ truyền thẳng `key` nếu đã
+    biết chính xác object path.
+    """
     file_svc = file_service()
-    archive_svc = archive_service()
-
-    key = params.get("key")
     if not key:
-        archive_id = params.get("archive_id") or params.get("id")
-        file_index = int(params.get("file_index", 0))
         if not archive_id:
-            raise ValueError("missing archive_id or key")
-        archive = await archive_svc.get_archive(archive_id)
-        projects = archive.get("projects") or []
-        file_url = None
-        for p in projects:
-            furls = p.get("fileUrls") or []
-            if furls:
-                if file_index < len(furls):
-                    file_url = furls[file_index]
-                    break
-                else:
-                    file_url = furls[0]
-                    break
-        if not file_url:
-            return {"file": None}
-        from clients.archive_backend_client import ArchiveBackendClient
-        key = ArchiveBackendClient.extract_key_from_url(file_url)
+            return {"found": False, "message": "Cần archive_id hoặc key"}
+        key = await file_svc.resolve_key_from_archive(archive_service(), archive_id, file_index)
+        if not key:
+            return {"found": False, "message": "Không tìm thấy file trong hồ sơ này"}
 
-    # Ask archive backend for headers/metadata only
-    meta = await file_svc.client.get_file_metadata(key)
-    return {"file": meta}
-
-
-tool = Tool(name="get_archive_file_info", description="Get archive file metadata", func=_impl)
+    info = await file_svc.get_file_info(key)
+    return {"found": True, "file": info}

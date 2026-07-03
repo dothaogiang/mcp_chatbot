@@ -1,0 +1,9 @@
+mcp>=1.28,<2
+httpx[http2]>=0.24
+pydantic>=2.0,<3
+qdrant-client>=1.8
+bge-m3>=0.1
+apscheduler>=3.10
+PyYAML>=6.0
+uv
+pytest>=7.0
