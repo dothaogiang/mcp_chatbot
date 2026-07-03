@@ -1,7 +1,9 @@
 from __future__ import annotations
-from typing import Optional
+from contextlib import asynccontextmanager
+from typing import AsyncIterator, Optional
 
-from config.settings import Settings
+from config.settings import Settings, get_settings
+from logger import setup_logging, get_logger
 from clients.archive_backend_client import ArchiveBackendClient
 from repositories.archive_repository import ArchiveRepository
 from repositories.staff_profile_repository import StaffProfileRepository
@@ -13,6 +15,8 @@ from rag.vectorstore.qdrant_client import QdrantClientWrapper
 from rag.retrieval.hybrid_search import HybridSearch
 from scheduler.sync_staff_profiles import schedule_refresh
 
+log = get_logger(__name__)
+
 _client: Optional[ArchiveBackendClient] = None
 _archive_service: Optional[ArchiveService] = None
 _staff_service: Optional[StaffProfileService] = None
@@ -20,10 +24,9 @@ _file_service: Optional[FileService] = None
 _scheduler = None
 
 
-def init_app(settings: Settings) -> None:
-    global _client, _archive_service, _staff_service, _file_service, _scheduler
-    if _client:
-        return
+def _build_services(settings: Settings):
+    """Chỉ tạo object, KHÔNG gọi coroutine nào -> an toàn để gọi trước khi có event loop."""
+    global _client, _archive_service, _staff_service, _file_service
 
     _client = ArchiveBackendClient(settings)
     archive_repo = ArchiveRepository(_client)
@@ -37,7 +40,31 @@ def init_app(settings: Settings) -> None:
     _staff_service = StaffProfileService(staff_repo, hybrid)
     _file_service = FileService(_client)
 
+    return staff_repo, hybrid
+
+
+@asynccontextmanager
+async def lifespan(_mcp) -> AsyncIterator[dict]:
+    """FastMCP gọi hàm này SAU KHI event loop đã chạy (bên trong mcp.run()).
+    Đây là nơi DUY NHẤT được phép start scheduler / asyncio.create_task().
+    """
+    global _scheduler
+
+    settings = get_settings()
+    setup_logging(settings)
+    staff_repo, hybrid = _build_services(settings)
+
     _scheduler = schedule_refresh(staff_repo, hybrid, settings.STAFF_SYNC_INTERVAL_SECONDS)
+    log.info("App context initialized, scheduler started")
+
+    try:
+        yield {}
+    finally:
+        if _scheduler:
+            _scheduler.shutdown(wait=False)
+        if _client:
+            await _client.aclose()
+        log.info("App context shut down")
 
 
 def archive_service() -> ArchiveService:
@@ -50,8 +77,3 @@ def staff_service() -> StaffProfileService:
 
 def file_service() -> FileService:
     return _file_service
-
-
-def close_app() -> None:
-    if _scheduler:
-        _scheduler.shutdown(wait=False)
