@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp_server_hr_archive"
+version = "0.1.0"
+description = "MCP Server for HR Archive — streamable MCP tools to query archive backend"
+authors = [ { name = "Generated", email = "dev@example.com" } ]
+requires-python = ">=3.12"
+
+dependencies = [
+  "mcp>=1.28,<2",
+  "httpx[http2]>=0.24",
+  "pydantic>=2.0,<3",
+  "qdrant-client>=1.8",
+  "bge-m3>=0.1",
+  "apscheduler>=3.10",
+  "PyYAML>=6.0",
+  "pytest>=7.0",
+  "uv"
+]
+
+[tool.uv]
+project = "mcp_server_hr_archive"

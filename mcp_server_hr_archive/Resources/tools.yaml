@@ -1,0 +1,69 @@
+# Optional tools configuration
+tools:
+  - category: mcp
+    name_tool: search_archive
+    module: src.tools.definitions.search_archive
+    attr: _impl
+    enabled: true
+    description: "Tìm kiếm hồ sơ lưu trữ theo từ khóa và bộ lọc"
+    inputSchema:
+      type: object
+      properties:
+        q:
+          type: string
+          description: "Từ khóa tìm kiếm"
+        page:
+          type: integer
+          description: "Số trang"
+        size:
+          type: integer
+          description: "Số bản ghi trên trang"
+      required: []
+  - category: mcp
+    name_tool: get_archive_detail
+    module: src.tools.definitions.get_archive_detail
+    attr: _impl
+    enabled: true
+    description: "Lấy chi tiết ngắn gọn của hồ sơ theo ID"
+    inputSchema:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "UUID của hồ sơ"
+      required: [id]
+  - category: mcp
+    name_tool: search_staff_profile
+    module: src.tools.definitions.search_staff_profile
+    attr: _impl
+    enabled: true
+    description: "Tìm kiếm hồ sơ cán bộ bằng RAG/hybrid"
+    inputSchema:
+      type: object
+      properties:
+        q:
+          type: string
+          description: "Truy vấn tìm kiếm"
+        top_k:
+          type: integer
+          description: "Số kết quả trả về"
+      required: []
+  - category: mcp
+    name_tool: get_archive_file_info
+    module: src.tools.definitions.get_archive_file
+    attr: _impl
+    enabled: true
+    description: "Trả về metadata của file hồ sơ (key lấy từ fileUrls[])"
+    inputSchema:
+      type: object
+      properties:
+        archive_id:
+          type: string
+          description: "UUID của hồ sơ"
+        file_index:
+          type: integer
+          description: "Chỉ số file trong danh sách URL"
+        key:
+          type: string
+          description: "Key lưu trữ trích xuất từ fileUrls"
+      required: []
