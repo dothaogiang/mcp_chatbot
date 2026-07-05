@@ -1,0 +1,30 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.Python
+
+# ── Virtual environment ──
+venv/
+env/
+.venv/
+
+# ── Biến môi trường (CHỨA CONFIG THẬT, không được commit) ──
+.env
+.env.local
+
+# ── Log tự sinh khi chạy server ──
+*.log
+logs/
+
+# ── IDE ──
+.vscode/
+.idea/
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Docker build cache (nếu build local) ──
+*.pid

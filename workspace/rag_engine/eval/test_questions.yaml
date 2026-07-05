@@ -1,0 +1,20 @@
+# Bộ câu hỏi test đo chất lượng retrieval. Chạy: python run_eval.py
+# Bạn cần tự bổ sung câu hỏi + archive_id thật sau khi ingest xong.
+
+test_cases:
+  - id: "tc_001"
+    type: "search_profile"
+    keyword: "Trần Xuân Sang"
+    expect_min_results: 1
+
+  - id: "tc_002"
+    type: "search_profile"
+    keyword: "làm nông"
+    expect_min_results: 1
+    note: "Test semantic expansion - kỳ vọng khớp cả 'nông dân', 'nông nghiệp'"
+
+  - id: "tc_003"
+    type: "get_profile_detail"
+    archive_id: "REPLACE_WITH_REAL_ARCHIVE_ID"
+    question: "tốt nghiệp năm nào"
+    expected_contains: "REPLACE_WITH_EXPECTED_SUBSTRING"

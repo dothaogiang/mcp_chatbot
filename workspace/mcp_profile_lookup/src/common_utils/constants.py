@@ -1,0 +1,1 @@
+TYPE_MCP_CATEGORY = "mcp"

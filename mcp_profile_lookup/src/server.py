@@ -2,6 +2,13 @@
 Entry point MCP server. Chạy: python src/server.py
 """
 import asyncio
+import os
+import sys
+
+# rag/ nằm ở project root (ngang hàng với src/), thêm root vào sys.path
+# để feature_manager.py import được `rag.retrieval_factory`.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from tools.registry import ToolRegistry
 from logger import get_logger
 

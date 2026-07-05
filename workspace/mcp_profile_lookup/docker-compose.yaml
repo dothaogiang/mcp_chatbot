@@ -1,0 +1,14 @@
+version: "3.9"
+
+# Lưu ý: docker-compose này CHỈ chạy MCP server, không chạy Qdrant/RAG.
+# RAG Engine là project riêng (../rag_engine), chạy độc lập bằng
+# `docker compose up -d` trong thư mục đó, expose port 8091.
+# Sửa RAG_SERVICE_URL nếu 2 project không cùng docker network.
+
+services:
+  mcp_server:
+    build: .
+    ports:
+      - "8090:8090"
+    environment:
+      RAG_SERVICE_URL: http://host.docker.internal:8091
